@@ -9,6 +9,7 @@ export const defaultConfig: Plugin.Config<Config> = {
   _handlerLegacy: handlerLegacy,
   _tags: ['transformer'],
   bigInt: true,
+  dateFormat: 'YYYY-MM-DDTHH:mm:ss.sssZ',
   dates: true,
   name: '@hey-api/transformers',
   output: 'transformers',

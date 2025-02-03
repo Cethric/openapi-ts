@@ -541,6 +541,11 @@ const stringTypeToIdentifier = ({
     if (schema.format === 'date-time' || schema.format === 'date') {
       // TODO: parser - add ability to skip type transformers
       if (context.config.plugins['@hey-api/transformers']?.dates) {
+        if (
+          context.config.plugins['@hey-api/transformers']?.dates === 'luxon'
+        ) {
+          return compiler.typeReferenceNode({ typeName: 'DateTime' });
+        }
         return compiler.typeReferenceNode({ typeName: 'Date' });
       }
     }
@@ -1034,6 +1039,10 @@ export const handler: Plugin.Handler<Config> = ({ context, plugin }) => {
     create: true,
     namespace: 'type',
   });
+
+  if (context.config.plugins['@hey-api/transformers']?.dates === 'luxon') {
+    file.import({ asType: true, module: 'luxon', name: 'DateTime' });
+  }
 
   context.subscribe('schema', ({ $ref, schema }) => {
     schemaToType({

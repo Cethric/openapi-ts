@@ -957,6 +957,54 @@ const schemaToZodSchema = ({
         });
       }
     }
+
+    if (
+      schema.type === 'string' &&
+      schema.format === 'date-time' &&
+      context.config.plugins['@hey-api/transformers']?.dates
+    ) {
+      if (context.config.plugins['@hey-api/transformers']?.dates === 'luxon') {
+        file.import({ asType: false, module: 'luxon', name: 'DateTime' });
+        expression = compiler.callExpression({
+          functionName: compiler.propertyAccessExpression({
+            expression,
+            name: 'transform',
+          }),
+          parameters: [
+            compiler.arrowFunction({
+              parameters: [
+                {
+                  isRequired: false,
+                  name: 'value',
+                  type: compiler.keywordTypeNode({ keyword: 'string' }),
+                },
+              ],
+              statements: compiler.conditionalExpression({
+                condition: compiler.identifier({ text: 'value' }),
+                whenFalse: compiler.callExpression({
+                  functionName: 'DateTime.invalid',
+                  parameters: [
+                    compiler.stringLiteral({ text: 'Date time not provided' }),
+                  ],
+                }),
+                whenTrue: compiler.callExpression({
+                  functionName: 'DateTime.fromFormat',
+                  parameters: [
+                    compiler.identifier({ text: 'value' }),
+                    compiler.stringLiteral({
+                      text:
+                        context.config.plugins['@hey-api/transformers']
+                          ?.dateFormat ?? '',
+                    }),
+                    compiler.objectExpression({ obj: {} }),
+                  ],
+                }),
+              }),
+            }),
+          ],
+        });
+      }
+    }
   }
 
   // emit nodes only if $ref points to a reusable component

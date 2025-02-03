@@ -61,32 +61,32 @@ const dateExpressions = ({
 }: {
   dataExpression?: ts.Expression | string;
   plugin: Plugin.Instance<Config>;
-}): Array<ts.Expression | ts.Statement> => {
+}): Array<ts.Expression> => {
   if (plugin.dates === 'luxon') {
     if (typeof dataExpression === 'string') {
       return [
-        compiler.namedImportDeclarations({
-          imports: ['DateTime'],
-          module: 'luxon',
-        }),
         compiler.callExpression({
-          functionName: 'DateTime.fromIso',
-          parameters: [compiler.identifier({ text: dataExpression })],
+          functionName: 'DateTime.fromFormat',
+          parameters: [
+            compiler.identifier({ text: dataExpression }),
+            compiler.stringLiteral({ text: plugin.dateFormat as string }),
+            compiler.objectExpression({ obj: {} }),
+          ],
         }),
       ];
     }
 
     if (dataExpression) {
       return [
-        compiler.namedImportDeclarations({
-          imports: ['DateTime'],
-          module: 'luxon',
-        }),
         compiler.assignment({
           left: dataExpression,
           right: compiler.callExpression({
-            functionName: 'DateTime.fromIso',
-            parameters: [dataExpression],
+            functionName: 'DateTime.fromFormat',
+            parameters: [
+              dataExpression,
+              compiler.stringLiteral({ text: plugin.dateFormat as string }),
+              compiler.objectExpression({ obj: {} }),
+            ],
           }),
         }),
       ];
@@ -525,6 +525,7 @@ export const handler: Plugin.Handler<Config> = ({ context, plugin }) => {
         module: file.relativePathToFile({ context, id: typesId }),
         name: identifierResponse.name,
       });
+      file.import({ asType: false, module: 'luxon', name: 'DateTime' });
       const responseTransformerNode = compiler.constVariable({
         exportConst: true,
         expression: compiler.arrowFunction({

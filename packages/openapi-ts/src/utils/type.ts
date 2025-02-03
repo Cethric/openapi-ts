@@ -24,6 +24,9 @@ const base = (model: Model) => {
   }
 
   if (config.plugins['@hey-api/transformers']?.dates && isModelDate(model)) {
+    if (config.plugins['@hey-api/transformers']?.dates === 'luxon') {
+      return compiler.typeNode('DateTime');
+    }
     return compiler.typeNode('Date');
   }
 

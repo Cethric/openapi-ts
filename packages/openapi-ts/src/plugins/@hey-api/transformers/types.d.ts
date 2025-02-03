@@ -8,6 +8,12 @@ export interface Config extends Plugin.Name<'@hey-api/transformers'> {
    */
   bigInt?: boolean;
   /**
+   * The format to attempt parsing dates with (ignored when dates != luxon)
+   *
+   * @default 'YYYY-MM-DDTHH:mm:ss.sssZ'
+   */
+  dateFormat?: string;
+  /**
    * Convert date strings into Date objects?
    *
    * @default true
