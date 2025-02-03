@@ -12,7 +12,7 @@ export interface Config extends Plugin.Name<'@hey-api/transformers'> {
    *
    * @default true
    */
-  dates?: boolean;
+  dates?: boolean | 'luxon';
   /**
    * Name of the generated file.
    *

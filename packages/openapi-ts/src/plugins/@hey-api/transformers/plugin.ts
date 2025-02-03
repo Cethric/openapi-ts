@@ -57,9 +57,44 @@ const bigIntExpressions = ({
 
 const dateExpressions = ({
   dataExpression,
+  plugin,
 }: {
   dataExpression?: ts.Expression | string;
-}): Array<ts.Expression> => {
+  plugin: Plugin.Instance<Config>;
+}): Array<ts.Expression | ts.Statement> => {
+  if (plugin.dates === 'luxon') {
+    if (typeof dataExpression === 'string') {
+      return [
+        compiler.namedImportDeclarations({
+          imports: ['DateTime'],
+          module: 'luxon',
+        }),
+        compiler.callExpression({
+          functionName: 'DateTime.fromIso',
+          parameters: [compiler.identifier({ text: dataExpression })],
+        }),
+      ];
+    }
+
+    if (dataExpression) {
+      return [
+        compiler.namedImportDeclarations({
+          imports: ['DateTime'],
+          module: 'luxon',
+        }),
+        compiler.assignment({
+          left: dataExpression,
+          right: compiler.callExpression({
+            functionName: 'DateTime.fromIso',
+            parameters: [dataExpression],
+          }),
+        }),
+      ];
+    }
+
+    return [];
+  }
+
   const identifierDate = compiler.identifier({ text: 'Date' });
 
   if (typeof dataExpression === 'string') {
@@ -363,7 +398,7 @@ const processSchemaType = ({
     schema.type === 'string' &&
     (schema.format === 'date' || schema.format === 'date-time')
   ) {
-    return dateExpressions({ dataExpression });
+    return dateExpressions({ dataExpression, plugin });
   }
 
   if (plugin.bigInt && schema.type === 'integer' && schema.format === 'int64') {
